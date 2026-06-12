@@ -19,6 +19,13 @@ export async function completeHabit(
   const session = await auth();
   if (!session?.user?.id) throw new Error("Nicht angemeldet");
 
+  // Demo mode — return simulated result
+  if (session.user.id === "demo-user-001") {
+    revalidatePath("/dashboard");
+    revalidatePath("/habits");
+    return { xpEarned: 80, coinsEarned: 15, leveledUp: false, oldLevel: 7, newLevel: 7, newRank: "Bronze", achievementsUnlocked: [], streakUpdated: false, newStreak: 5, alreadyCompleted: false };
+  }
+
   const userId = session.user.id;
   const supabase = createAdminClient();
   const today = new Date().toISOString().split("T")[0]!;
@@ -261,6 +268,10 @@ export async function createHabit(
 ): Promise<{ id: string }> {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Nicht angemeldet");
+
+  if (session.user.id === "demo-user-001") {
+    return { id: `demo-habit-${Date.now()}` };
+  }
 
   const supabase = createAdminClient();
   const { data: habit, error } = await supabase

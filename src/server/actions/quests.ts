@@ -11,6 +11,7 @@ import { QUEST_TEMPLATES } from "@/types";
 export async function generateDailyQuests(): Promise<void> {
   const session = await auth();
   if (!session?.user?.id) return;
+  if (session.user.id === "demo-user-001") return;
 
   const userId = session.user.id;
   const supabase = createAdminClient();
@@ -46,6 +47,14 @@ export async function completeQuest(questId: string): Promise<{
   if (!session?.user?.id) throw new Error("Nicht angemeldet");
 
   const userId = session.user.id;
+
+  // Demo mode
+  if (userId === "demo-user-001") {
+    revalidatePath("/dashboard");
+    revalidatePath("/quests");
+    return { xpEarned: 100, coinsEarned: 20, leveledUp: false, newLevel: 7 };
+  }
+
   const supabase = createAdminClient();
 
   const { data: questRow } = await supabase

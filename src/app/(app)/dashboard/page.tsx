@@ -11,28 +11,18 @@ import {
   getDailyQuests,
 } from "@/server/queries/habits";
 import { generateDailyQuests } from "@/server/actions/quests";
-import { TopBar } from "@/components/layout/TopBar";
-import { XPBar } from "@/components/game/XPBar";
-import { LevelBadge } from "@/components/game/LevelBadge";
-import { RankBadge } from "@/components/game/RankBadge";
-import { StreakCounter } from "@/components/game/StreakCounter";
 import { HabitCard } from "@/components/game/HabitCard";
 import { QuestCard } from "@/components/game/QuestCard";
-import { AttributeCard } from "@/components/game/AttributeCard";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getXpProgressInCurrentLevel } from "@/lib/xp";
-import { formatDistanceToNow } from "date-fns";
-import { de } from "date-fns/locale";
-import { Zap, Swords, CheckSquare, Activity } from "lucide-react";
+import { Flame, Zap } from "lucide-react";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  // Generate quests lazily (no-op if already generated today)
   await generateDailyQuests();
 
-  // Parallel data fetch
   const [user, attributes, habits, completions, quests, activity] =
     await Promise.all([
       getCharacter(session.user.id),
@@ -40,211 +30,190 @@ export default async function DashboardPage() {
       getHabits(session.user.id),
       getTodayCompletions(session.user.id),
       getDailyQuests(session.user.id),
-      getRecentActivity(session.user.id, 8),
+      getRecentActivity(session.user.id, 5),
     ]);
 
   if (!user) redirect("/login");
 
   const xpProgress = getXpProgressInCurrentLevel(Number(user.total_xp));
   const completedHabitIds = new Set(completions.map((c) => c.habit_id));
-  const todayHabits = habits.slice(0, 4);
-  const todayQuestsCompleted = quests.filter((q) => q.is_completed).length;
+  const completedQuests = quests.filter((q) => q.is_completed).length;
 
   return (
-    <div>
-      <TopBar title="Dashboard" user={user} />
+    <div className="p-5 lg:p-7 max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">
+          Hallo, {user.username} 👋
+        </h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Lv. {user.level} · {user.rank}
+        </p>
+      </div>
 
-      <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
-        {/* Character Hero Panel */}
-        <div className="glass rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-6 border border-indigo-500/10">
-          <div className="relative">
-            <Avatar className="w-20 h-20 md:w-24 md:h-24 ring-4 ring-indigo-500/30 ring-offset-2 ring-offset-background">
-              <AvatarImage src={user.avatar_url ?? ""} />
-              <AvatarFallback className="bg-indigo-500/20 text-indigo-300 text-2xl font-black">
-                {user.username.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="absolute -bottom-2 -right-2">
-              <LevelBadge level={user.level} size="sm" />
-            </div>
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="app-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Zap className="w-4 h-4 text-indigo-400" />
+            <span className="text-xs text-muted-foreground font-medium">XP</span>
           </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 mb-1">
-              <h2 className="text-xl md:text-2xl font-black text-foreground">
-                {user.username}
-              </h2>
-              <RankBadge rank={user.rank} size="sm" />
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">{user.title}</p>
-
-            <XPBar
-              current={xpProgress.current}
-              required={xpProgress.required}
-              percentage={xpProgress.percentage}
-              size="lg"
+          <p className="text-xl font-bold text-foreground">{Number(user.total_xp).toLocaleString()}</p>
+          <div className="mt-2 h-1 bg-secondary rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+              style={{ width: `${xpProgress.percentage}%` }}
             />
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            {xpProgress.current} / {xpProgress.required} bis Lv. {user.level + 1}
+          </p>
+        </div>
 
-            <div className="flex flex-wrap items-center gap-4 mt-4">
-              <StreakCounter streak={user.current_streak} />
-              <div className="flex items-center gap-1.5 text-sm">
-                <Zap className="w-4 h-4 text-indigo-400" />
-                <span className="font-semibold text-indigo-400">
-                  {Number(user.total_xp).toLocaleString()}
-                </span>
-                <span className="text-muted-foreground">XP gesamt</span>
-              </div>
-            </div>
+        <div className="app-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Flame className="w-4 h-4 text-orange-400" />
+            <span className="text-xs text-muted-foreground font-medium">Streak</span>
+          </div>
+          <p className="text-xl font-bold text-foreground">{user.current_streak}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            {user.current_streak === 1 ? "Tag" : "Tage"} in Folge
+          </p>
+        </div>
+
+        <div className="app-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm">🪙</span>
+            <span className="text-xs text-muted-foreground font-medium">Coins</span>
+          </div>
+          <p className="text-xl font-bold text-foreground">{user.coins.toLocaleString()}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Gesammelt</p>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Habits */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-foreground">Heute</h2>
+            <span className="text-xs text-muted-foreground">
+              {completedHabitIds.size}/{habits.length} erledigt
+            </span>
           </div>
 
-          {/* Stats mini grid */}
-          <div className="grid grid-cols-2 gap-3 shrink-0">
-            {[
-              { label: "Level", value: user.level, color: "#6366f1" },
-              { label: "Streak", value: `${user.current_streak}d`, color: "#f97316" },
-              { label: "Coins", value: user.coins.toLocaleString(), color: "#f59e0b" },
-              {
-                label: "Quests",
-                value: `${todayQuestsCompleted}/${quests.length}`,
-                color: "#10b981",
-              },
-            ].map(({ label, value, color }) => (
-              <div
-                key={label}
-                className="glass-card rounded-xl px-4 py-3 text-center"
+          {habits.length === 0 ? (
+            <div className="app-card p-6 text-center">
+              <p className="text-sm text-muted-foreground mb-3">Noch keine Gewohnheiten.</p>
+              <Link
+                href="/habits"
+                className="text-sm text-indigo-400 font-medium hover:text-indigo-300 transition-colors"
               >
-                <p className="text-lg font-black" style={{ color }}>
-                  {value}
-                </p>
-                <p className="text-xs text-muted-foreground">{label}</p>
+                Gewohnheit erstellen →
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {habits.map((habit, i) => (
+                <HabitCard
+                  key={habit.id}
+                  habit={habit}
+                  completedToday={completedHabitIds.has(habit.id)}
+                  index={i}
+                />
+              ))}
+              {habits.length > 4 && (
+                <Link href="/habits" className="block text-center text-xs text-muted-foreground hover:text-indigo-400 py-2 transition-colors">
+                  Alle {habits.length} Gewohnheiten →
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Quests */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-foreground">Tägliche Quests</h2>
+            <span className="text-xs text-muted-foreground">{completedQuests}/{quests.length}</span>
+          </div>
+
+          {quests.length === 0 ? (
+            <div className="app-card p-6 text-center">
+              <p className="text-sm text-muted-foreground">Quests werden geladen...</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {quests.map((quest, i) => (
+                <QuestCard key={quest.id} quest={quest} index={i} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Attribute overview */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold text-foreground">Attribute</h2>
+          <Link href="/attributes" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+            Alle →
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {attributes.map((attr) => {
+            const colorMap: Record<string, string> = {
+              strength: "#ff453a",
+              intelligence: "#0a84ff",
+              economy: "#ff9f0a",
+              discipline: "#bf5af2",
+              social: "#ff375f",
+              health: "#30d158",
+            };
+            const labelMap: Record<string, string> = {
+              strength: "Stärke",
+              intelligence: "Intelligenz",
+              economy: "Wirtschaft",
+              discipline: "Disziplin",
+              social: "Sozial",
+              health: "Gesundheit",
+            };
+            const color = colorMap[attr.type] ?? "#6366f1";
+            return (
+              <div key={attr.id} className="app-card p-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-medium text-foreground">{labelMap[attr.type] ?? attr.type}</span>
+                  <span className="text-xs text-muted-foreground">Lv.{attr.level}</span>
+                </div>
+                <div className="h-1 bg-secondary rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: "40%", backgroundColor: color }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recent activity */}
+      {activity.length > 0 && (
+        <div>
+          <h2 className="text-base font-semibold text-foreground mb-3">Letzte Aktivitäten</h2>
+          <div className="app-card divide-y divide-border">
+            {activity.map((a) => (
+              <div key={a.id} className="flex items-center gap-3 px-4 py-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                <p className="flex-1 text-sm text-foreground truncate">{a.description}</p>
+                {a.xp_earned > 0 && (
+                  <span className="text-xs font-medium text-indigo-400 shrink-0">+{a.xp_earned} XP</span>
+                )}
               </div>
             ))}
           </div>
         </div>
-
-        {/* Main content grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Habits + Quests */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Today's Habits */}
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <CheckSquare className="w-4 h-4 text-indigo-400" />
-                  <h3 className="font-semibold text-foreground">
-                    Heutige Gewohnheiten
-                  </h3>
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {completedHabitIds.size}/{habits.length} erledigt
-                </span>
-              </div>
-
-              {habits.length === 0 ? (
-                <div className="glass-card rounded-2xl p-8 text-center">
-                  <p className="text-muted-foreground text-sm">
-                    Noch keine Gewohnheiten.
-                  </p>
-                  <a
-                    href="/habits"
-                    className="text-indigo-400 text-sm font-medium hover:underline mt-2 inline-block"
-                  >
-                    Erste Gewohnheit erstellen →
-                  </a>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {todayHabits.map((habit, i) => (
-                    <HabitCard
-                      key={habit.id}
-                      habit={habit}
-                      completedToday={completedHabitIds.has(habit.id)}
-                      index={i}
-                    />
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* Daily Quests */}
-            <section>
-              <div className="flex items-center gap-2 mb-4">
-                <Swords className="w-4 h-4 text-violet-400" />
-                <h3 className="font-semibold text-foreground">Tägliche Quests</h3>
-              </div>
-
-              {quests.length === 0 ? (
-                <div className="glass-card rounded-2xl p-6 text-center">
-                  <p className="text-muted-foreground text-sm">
-                    Quests werden geladen...
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {quests.map((quest, i) => (
-                    <QuestCard key={quest.id} quest={quest} index={i} />
-                  ))}
-                </div>
-              )}
-            </section>
-          </div>
-
-          {/* Right: Attributes + Activity */}
-          <div className="space-y-6">
-            {/* Attribute Grid (mini) */}
-            <section>
-              <div className="flex items-center gap-2 mb-4">
-                <Zap className="w-4 h-4 text-amber-400" />
-                <h3 className="font-semibold text-foreground">Attribute</h3>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {attributes.map((attr, i) => (
-                  <AttributeCard key={attr.id} attribute={attr} index={i} />
-                ))}
-              </div>
-            </section>
-
-            {/* Recent Activity */}
-            <section>
-              <div className="flex items-center gap-2 mb-4">
-                <Activity className="w-4 h-4 text-muted-foreground" />
-                <h3 className="font-semibold text-foreground">Letzte Aktivitäten</h3>
-              </div>
-              <div className="glass-card rounded-2xl overflow-hidden">
-                {activity.length === 0 ? (
-                  <p className="text-muted-foreground text-sm p-4">
-                    Noch keine Aktivitäten.
-                  </p>
-                ) : (
-                  <ul className="divide-y divide-white/5">
-                    {activity.map((a) => (
-                      <li key={a.id} className="px-4 py-3 flex items-center gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-foreground truncate">
-                            {a.description}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {formatDistanceToNow(new Date(a.created_at), {
-                              addSuffix: true,
-                              locale: de,
-                            })}
-                          </p>
-                        </div>
-                        {a.xp_earned > 0 && (
-                          <span className="text-xs font-semibold text-indigo-400 shrink-0">
-                            +{a.xp_earned} XP
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </section>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

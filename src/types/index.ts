@@ -64,6 +64,7 @@ export interface HabitCompletion {
   completed_at: string;
   xp_earned: number;
   coins_earned: number;
+  created_at?: string;
 }
 
 export interface DailyQuest {
@@ -78,6 +79,7 @@ export interface DailyQuest {
   current_value: number;
   is_completed: boolean;
   quest_date: string;
+  created_at?: string;
 }
 
 export interface Achievement {
