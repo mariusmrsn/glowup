@@ -7,13 +7,11 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  CheckSquare,
   Trophy,
   BarChart3,
   User,
   LogOut,
   Flame,
-  Target,
   ListTodo,
   ShoppingBag,
   Users,
@@ -27,8 +25,6 @@ import { getXpProgressInCurrentLevel } from "@/lib/xp";
 // Each nav item has its own accent color — no uniform purple
 const NAV_ITEMS = [
   { href: "/dashboard",       icon: LayoutDashboard, label: "Dashboard",          color: "#6366f1" },
-  { href: "/habits",          icon: CheckSquare,     label: "Gewohnheiten",       color: "#10B981" },
-  { href: "/goals",           icon: Target,          label: "Ziele",              color: "#F59E0B" },
   { href: "/todo",            icon: ListTodo,        label: "To-Do Liste",        color: "#3B82F6" },
   { href: "/leaderboard",     icon: Users,           label: "Rangliste",          color: "#EC4899" },
   { href: "/achievements",    icon: Trophy,          label: "Achievements",       color: "#F59E0B" },

@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CheckSquare, Target, Users, User, Bell } from "lucide-react";
+import { LayoutDashboard, Users, User, Bell, ListTodo } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/dashboard",     icon: LayoutDashboard, label: "Home" },
-  { href: "/habits",        icon: CheckSquare,     label: "Habits" },
-  { href: "/goals",         icon: Target,          label: "Ziele" },
+  { href: "/todo",          icon: ListTodo,        label: "To-Do" },
   { href: "/leaderboard",   icon: Users,           label: "Rangliste" },
   { href: "/notifications", icon: Bell,            label: "Alerts" },
   { href: "/profile",       icon: User,            label: "Profil" },
