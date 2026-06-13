@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { SwRegister } from "@/components/sw-register";
+import { PwaInstallBanner } from "@/components/pwa-install-banner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,6 +49,7 @@ export default function RootLayout({
           {children}
           <Toaster richColors position="top-right" />
           <SwRegister />
+          <PwaInstallBanner />
         </Providers>
       </body>
     </html>
