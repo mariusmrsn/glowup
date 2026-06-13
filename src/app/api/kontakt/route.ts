@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     // E-Mail via Resend — optional, only if API key is configured
     if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== "re_DEIN_API_KEY_HIER") {
       const { error } = await resend.emails.send({
-        from: "GlowUp <noreply@quueastaiv.resend.app>",
+        from: "GlowUp <onboarding@resend.dev>",
         to: ["mariusmuresan229@gmail.com"],
         replyTo: email.trim(),
         subject: `[GlowUp Anfrage] ${subject.trim()}`,
