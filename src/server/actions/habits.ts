@@ -264,10 +264,15 @@ async function checkAndUnlockAchievements(
 }
 
 export async function createHabit(
-  data: Omit<Habit, "id" | "user_id" | "is_archived" | "created_at">
+  data: Omit<Habit, "id" | "user_id" | "is_archived" | "created_at" | "xp_reward" | "coin_reward"> & { duration_minutes?: number }
 ): Promise<{ id: string }> {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Nicht angemeldet");
+
+  // XP is always determined server-side by duration — no client manipulation possible
+  const { calculateHabitXp } = await import("@/lib/xp");
+  const xp_reward = calculateHabitXp(data.duration_minutes ?? 0);
+  const coin_reward = Math.floor(xp_reward / 10);
 
   if (session.user.id === "demo-user-001") {
     return { id: `demo-habit-${Date.now()}` };
@@ -276,7 +281,7 @@ export async function createHabit(
   const supabase = createAdminClient();
   const { data: habit, error } = await supabase
     .from("habits")
-    .insert({ ...data, user_id: session.user.id })
+    .insert({ ...data, user_id: session.user.id, xp_reward, coin_reward })
     .select("id")
     .single();
 

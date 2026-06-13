@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getDailyQuests } from "@/server/queries/habits";
 import { getCharacter } from "@/server/queries/character";
-import { generateDailyQuests } from "@/server/actions/quests";
+import { ensureDailyQuests } from "@/server/queries/quests";
 import { TopBar } from "@/components/layout/TopBar";
 import { QuestCard } from "@/components/game/QuestCard";
 
@@ -10,7 +10,7 @@ export default async function QuestsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  await generateDailyQuests();
+  await ensureDailyQuests(session.user.id);
 
   const [user, quests] = await Promise.all([
     getCharacter(session.user.id),

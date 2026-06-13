@@ -6,37 +6,6 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { getLevelFromXp } from "@/lib/xp";
 import { getRankFromLevel } from "@/lib/ranks";
 import type { DailyQuest, User } from "@/types";
-import { QUEST_TEMPLATES } from "@/types";
-
-export async function generateDailyQuests(): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.id) return;
-  if (session.user.id === "demo-user-001") return;
-
-  const userId = session.user.id;
-  const supabase = createAdminClient();
-  const today = new Date().toISOString().split("T")[0]!;
-
-  const { data: existing } = await supabase
-    .from("daily_quests")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("quest_date", today);
-
-  if (existing && existing.length >= 3) return;
-
-  // Pick 3 random quests from templates
-  const shuffled = [...QUEST_TEMPLATES].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, 3);
-
-  await supabase.from("daily_quests").insert(
-    selected.map((q) => ({ ...q, user_id: userId, quest_date: today }))
-  );
-
-  revalidatePath("/dashboard");
-  revalidatePath("/quests");
-}
-
 export async function completeQuest(questId: string): Promise<{
   xpEarned: number;
   coinsEarned: number;

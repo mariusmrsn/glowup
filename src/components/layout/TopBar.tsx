@@ -28,10 +28,15 @@ export function TopBar({ title, user }: TopBarProps) {
             className="cursor-pointer focus:outline-none"
             render={
               <button type="button" aria-label="Nutzer-Menü">
-                <div className="w-8 h-8 rounded-full bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center">
-                  <span className="text-xs font-semibold text-indigo-400">
-                    {user.username.slice(0, 2).toUpperCase()}
-                  </span>
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center">
+                  {user.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-semibold text-indigo-400">
+                      {user.username.slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
                 </div>
               </button>
             }

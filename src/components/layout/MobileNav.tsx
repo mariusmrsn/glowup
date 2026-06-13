@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CheckSquare, Swords, Trophy, User } from "lucide-react";
+import { LayoutDashboard, CheckSquare, Target, Users, User, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
-  { href: "/habits", icon: CheckSquare, label: "Habits" },
-  { href: "/quests", icon: Swords, label: "Quests" },
-  { href: "/achievements", icon: Trophy, label: "Awards" },
-  { href: "/profile", icon: User, label: "Profil" },
+  { href: "/dashboard",     icon: LayoutDashboard, label: "Home" },
+  { href: "/habits",        icon: CheckSquare,     label: "Habits" },
+  { href: "/goals",         icon: Target,          label: "Ziele" },
+  { href: "/leaderboard",   icon: Users,           label: "Rangliste" },
+  { href: "/notifications", icon: Bell,            label: "Alerts" },
+  { href: "/profile",       icon: User,            label: "Profil" },
 ] as const;
 
 export function MobileNav() {

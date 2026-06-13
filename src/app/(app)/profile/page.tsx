@@ -2,79 +2,126 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getCharacter } from "@/server/queries/character";
 import { TopBar } from "@/components/layout/TopBar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LevelBadge } from "@/components/game/LevelBadge";
 import { RankBadge } from "@/components/game/RankBadge";
 import { StreakCounter } from "@/components/game/StreakCounter";
 import { XPBar } from "@/components/game/XPBar";
 import { getXpProgressInCurrentLevel } from "@/lib/xp";
+import { ProfileEditClient } from "./ProfileEditClient";
+import { createAdminClient } from "@/lib/supabase/server";
+import { Coins } from "lucide-react";
+import Link from "next/link";
+
+async function getEquippedItems(userId: string) {
+  if (userId === "demo-user-001") return [];
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("user_items")
+    .select("item_id, equipped, shop_items(id, name, icon, type, rarity)")
+    .eq("user_id", userId)
+    .eq("equipped", true);
+  return (data ?? []) as unknown as Array<{
+    item_id: string;
+    equipped: boolean;
+    shop_items: { id: string; name: string; icon: string; type: string; rarity: string };
+  }>;
+}
+
+const RARITY_COLOR: Record<string, string> = {
+  common: "#94a3b8",
+  rare: "#3B82F6",
+  epic: "#8B5CF6",
+  legendary: "#F59E0B",
+};
 
 export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  const user = await getCharacter(session.user.id);
+  const [user, equipped] = await Promise.all([
+    getCharacter(session.user.id),
+    getEquippedItems(session.user.id),
+  ]);
   if (!user) redirect("/login");
 
   const xpProgress = getXpProgressInCurrentLevel(Number(user.total_xp));
+  const extUser = user as typeof user & { height_cm?: number | null; weight_kg?: number | null; bio?: string | null };
+
+  const badges = equipped.filter((e) => e.shop_items?.type === "badge");
+  const titleItem = equipped.find((e) => e.shop_items?.type === "title");
 
   return (
     <div>
       <TopBar title="Profil" user={user} />
-      <div className="p-4 lg:p-6 max-w-xl mx-auto space-y-6">
+      <div className="p-4 lg:p-6 max-w-xl mx-auto space-y-5">
         {/* Character card */}
-        <div className="glass rounded-3xl p-8 text-center border border-indigo-500/10">
-          <Avatar className="w-24 h-24 mx-auto ring-4 ring-indigo-500/30 ring-offset-4 ring-offset-background mb-4">
-            <AvatarImage src={user.avatar_url ?? ""} />
-            <AvatarFallback className="bg-indigo-500/20 text-indigo-300 text-3xl font-black">
-              {user.username.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+        <div className="app-card p-6 text-center">
+          {badges.length > 0 && (
+            <div className="flex items-center justify-center gap-1.5 mb-2">
+              {badges.slice(0, 5).map((b) => (
+                <span key={b.item_id} title={b.shop_items.name} className="text-xl">{b.shop_items.icon}</span>
+              ))}
+            </div>
+          )}
 
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <h2 className="text-2xl font-black">{user.username}</h2>
-          </div>
+          <h2 className="text-2xl font-black text-foreground">{user.username}</h2>
 
-          <p className="text-muted-foreground text-sm mb-4">{user.title}</p>
+          {titleItem ? (
+            <p className="text-sm font-semibold mt-0.5" style={{ color: RARITY_COLOR[titleItem.shop_items.rarity] }}>
+              {titleItem.shop_items.icon} {titleItem.shop_items.name}
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground mt-0.5">{user.title}</p>
+          )}
 
-          <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="flex items-center justify-center gap-3 mt-3 mb-4">
             <LevelBadge level={user.level} />
             <RankBadge rank={user.rank} />
           </div>
 
           <div className="max-w-xs mx-auto mb-4">
-            <XPBar
-              current={xpProgress.current}
-              required={xpProgress.required}
-              percentage={xpProgress.percentage}
-            />
+            <XPBar current={xpProgress.current} required={xpProgress.required} percentage={xpProgress.percentage} />
+          </div>
+
+          <div className="border-t border-border pt-4 mt-2">
+            <ProfileEditClient user={extUser} />
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Stats grid */}
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: "Gesamt XP", value: Number(user.total_xp).toLocaleString() },
-            { label: "Coins", value: user.coins.toLocaleString() },
-            {
-              label: "Aktueller Streak",
-              value: <StreakCounter streak={user.current_streak} />,
-            },
-            {
-              label: "Bester Streak",
-              value: `${user.longest_streak} Tage`,
-            },
-            {
-              label: "Dabei seit",
-              value: new Date(user.created_at).toLocaleDateString("de-DE"),
-            },
-          ].map(({ label, value }) => (
-            <div key={label} className="glass-card rounded-xl p-4">
-              <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
-              <div className="font-semibold text-foreground">{value}</div>
+            { label: "Gesamt XP", value: Number(user.total_xp).toLocaleString(), icon: "⚡" },
+            { label: "Coins", value: user.coins.toLocaleString(), icon: "🪙" },
+            { label: "Aktueller Streak", value: <StreakCounter streak={user.current_streak} />, icon: "🔥" },
+            { label: "Bester Streak", value: `${user.longest_streak} Tage`, icon: "🏆" },
+            { label: "Dabei seit", value: new Date(user.created_at).toLocaleDateString("de-DE"), icon: "📅" },
+            { label: "Level", value: String(user.level), icon: "⭐" },
+          ].map(({ label, value, icon }) => (
+            <div key={label} className="app-card p-4">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-sm">{icon}</span>
+                <p className="text-xs text-muted-foreground">{label}</p>
+              </div>
+              <div className="font-bold text-foreground">{value}</div>
             </div>
           ))}
         </div>
+
+        {/* Shop CTA */}
+        <Link
+          href="/shop"
+          className="app-card p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-xl">🏪</div>
+            <div>
+              <p className="font-semibold text-sm text-foreground">GlowUp Shop</p>
+              <p className="text-xs text-muted-foreground">Items kaufen · {user.coins} Coins verfügbar</p>
+            </div>
+          </div>
+          <Coins className="w-4 h-4 text-muted-foreground group-hover:text-amber-500 transition-colors" />
+        </Link>
       </div>
     </div>
   );

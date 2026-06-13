@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="silver" x1="50%" y1="0%" x2="50%" y2="100%" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="60%" stop-color="#E0E0EC"/>
+      <stop offset="100%" stop-color="#9090A8"/>
+    </linearGradient>
+  </defs>
+  <!-- 4-pointed sparkle star, top point elongated for upward ascent -->
+  <path d="M50 3 C50 3 54 38 59 46 C67 54 97 50 97 50 C97 50 67 46 59 54 C54 62 50 91 50 91 C50 91 46 62 41 54 C33 46 3 50 3 50 C3 50 33 54 41 46 C46 38 50 3 50 3 Z" fill="url(#silver)"/>
+  <!-- Small secondary sparkle (top-right accent) -->
+  <path d="M74 18 C74 18 75.5 24 77 25.5 C78.5 27 85 27.5 85 27.5 C85 27.5 78.5 28 77 29.5 C75.5 31 74 37 74 37 C74 37 72.5 31 71 29.5 C69.5 28 63 27.5 63 27.5 C63 27.5 69.5 27 71 25.5 C72.5 24 74 18 74 18 Z" fill="white" opacity="0.6"/>
+</svg>

@@ -10,7 +10,7 @@ import {
   getTodayCompletions,
   getDailyQuests,
 } from "@/server/queries/habits";
-import { generateDailyQuests } from "@/server/actions/quests";
+import { ensureDailyQuests } from "@/server/queries/quests";
 import { HabitCard } from "@/components/game/HabitCard";
 import { QuestCard } from "@/components/game/QuestCard";
 import { getXpProgressInCurrentLevel } from "@/lib/xp";
@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  await generateDailyQuests();
+  await ensureDailyQuests(session.user.id);
 
   const [user, attributes, habits, completions, quests, activity] =
     await Promise.all([

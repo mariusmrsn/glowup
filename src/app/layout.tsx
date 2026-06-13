@@ -28,9 +28,10 @@ export default function RootLayout({
   return (
     <html
       lang="de"
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full bg-background text-foreground">
+      <body className="min-h-full bg-background text-foreground" suppressHydrationWarning>
         <Providers>
           {children}
           <Toaster richColors position="top-right" />
