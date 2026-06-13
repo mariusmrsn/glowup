@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
 
 export async function updateProfile(data: {
   bio?: string;
@@ -30,6 +31,41 @@ export async function updateProfile(data: {
 
   if (error) throw new Error(error.message);
   revalidatePath("/profile");
+}
+
+export async function changePassword(data: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Nicht angemeldet");
+  if (session.user.id === "demo-user-001") throw new Error("Demo-Modus");
+
+  if (!data.newPassword || data.newPassword.length < 8) {
+    throw new Error("Neues Passwort muss mindestens 8 Zeichen haben");
+  }
+
+  const supabase = createAdminClient();
+
+  // Fetch current password hash
+  const { data: userRow } = await supabase
+    .from("users")
+    .select("password_hash")
+    .eq("id", session.user.id)
+    .single();
+
+  if (!userRow?.password_hash) throw new Error("Kein Passwort gesetzt");
+
+  const valid = await bcrypt.compare(data.currentPassword, userRow.password_hash);
+  if (!valid) throw new Error("Aktuelles Passwort ist falsch");
+
+  const newHash = await bcrypt.hash(data.newPassword, 12);
+  const { error } = await supabase
+    .from("users")
+    .update({ password_hash: newHash })
+    .eq("id", session.user.id);
+
+  if (error) throw new Error(error.message);
 }
 
 export async function uploadAvatar(formData: FormData): Promise<string> {

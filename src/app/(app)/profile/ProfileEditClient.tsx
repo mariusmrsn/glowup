@@ -3,8 +3,8 @@
 import { useState, useTransition, useRef } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Pencil, X, Save, Camera, Loader2, Globe, Lock } from "lucide-react";
-import { updateProfile, uploadAvatar } from "@/server/actions/profile";
+import { Pencil, X, Save, Camera, Loader2, Globe, Lock, KeyRound, Eye, EyeOff } from "lucide-react";
+import { updateProfile, uploadAvatar, changePassword } from "@/server/actions/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { User } from "@/types";
 
@@ -23,12 +23,32 @@ export function ProfileEditClient({ user }: Props) {
   const [editing, setEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isUploadingAvatar, startAvatarUpload] = useTransition();
+  const [isChangingPw, startPwChange] = useTransition();
   const [bio, setBio] = useState(user.bio ?? "");
   const [avatarUrl, setAvatarUrl] = useState(user.avatar_url ?? "");
   const [heightCm, setHeightCm] = useState(user.height_cm ? String(user.height_cm) : "");
   const [weightKg, setWeightKg] = useState(user.weight_kg ? String(user.weight_kg) : "");
   const [isPublic, setIsPublic] = useState(user.is_public ?? true);
+  const [showPwSection, setShowPwSection] = useState(false);
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePasswordChange = () => {
+    if (newPw !== confirmPw) { toast.error("Passwörter stimmen nicht überein"); return; }
+    if (newPw.length < 8) { toast.error("Mindestens 8 Zeichen"); return; }
+    startPwChange(async () => {
+      try {
+        await changePassword({ currentPassword: currentPw, newPassword: newPw });
+        toast.success("Passwort geändert!");
+        setCurrentPw(""); setNewPw(""); setConfirmPw(""); setShowPwSection(false);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Fehler");
+      }
+    });
+  };
 
   const h = parseFloat(heightCm) || 0;
   const w = parseFloat(weightKg) || 0;
@@ -301,6 +321,62 @@ export function ProfileEditClient({ user }: Props) {
         <Save className="w-4 h-4" />
         {isPending ? "Speichere…" : "Speichern"}
       </button>
+
+      {/* Password change section */}
+      <div className="border-t border-border pt-4">
+        <button
+          type="button"
+          onClick={() => setShowPwSection((v) => !v)}
+          className="w-full flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+        >
+          <KeyRound className="w-4 h-4" />
+          Passwort ändern
+        </button>
+
+        {showPwSection && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="mt-3 space-y-3 overflow-hidden"
+          >
+            <div className="relative">
+              <input
+                type={showPw ? "text" : "password"}
+                value={currentPw}
+                onChange={(e) => setCurrentPw(e.target.value)}
+                placeholder="Aktuelles Passwort"
+                className="w-full px-3 py-2.5 pr-10 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+              />
+              <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground cursor-pointer">
+                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <input
+              type={showPw ? "text" : "password"}
+              value={newPw}
+              onChange={(e) => setNewPw(e.target.value)}
+              placeholder="Neues Passwort (min. 8 Zeichen)"
+              className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+            />
+            <input
+              type={showPw ? "text" : "password"}
+              value={confirmPw}
+              onChange={(e) => setConfirmPw(e.target.value)}
+              placeholder="Neues Passwort wiederholen"
+              className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+            />
+            <button
+              type="button"
+              onClick={handlePasswordChange}
+              disabled={isChangingPw || !currentPw || !newPw || !confirmPw}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground font-medium text-sm transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {isChangingPw ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+              {isChangingPw ? "Wird geändert…" : "Passwort speichern"}
+            </button>
+          </motion.div>
+        )}
+      </div>
     </motion.div>
   );
 }
