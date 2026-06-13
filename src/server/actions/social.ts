@@ -122,24 +122,29 @@ export async function cancelFollowRequest(targetUserId: string) {
 
 // Accept a follow request (called by the target user)
 export async function acceptFollowRequest(requesterId: string, notificationId?: string) {
+  console.log("[acceptFollowRequest] called", { requesterId, notificationId });
+
   const session = await auth();
+  console.log("[acceptFollowRequest] session userId:", session?.user?.id ?? "NULL");
   if (!session?.user?.id) throw new Error("Nicht angemeldet");
   if (session.user.id === "demo-user-001") return;
 
   const supabase = createAdminClient();
 
-  // Create mutual follow — both users follow each other
-  const [r1, r2] = await Promise.all([
-    supabase
-      .from("follows")
-      .upsert({ follower_id: requesterId, following_id: session.user.id }, { onConflict: "follower_id,following_id" }),
-    supabase
-      .from("follows")
-      .upsert({ follower_id: session.user.id, following_id: requesterId }, { onConflict: "follower_id,following_id" }),
-  ]);
+  // Insert A→B (requester follows acceptor)
+  const r1 = await supabase
+    .from("follows")
+    .upsert({ follower_id: requesterId, following_id: session.user.id }, { onConflict: "follower_id,following_id" });
+  console.log("[acceptFollowRequest] r1:", r1.error?.message ?? "ok");
 
-  if (r1.error) throw new Error(r1.error.message);
-  if (r2.error) throw new Error(r2.error.message);
+  // Insert B→A (acceptor follows requester back — mutual)
+  const r2 = await supabase
+    .from("follows")
+    .upsert({ follower_id: session.user.id, following_id: requesterId }, { onConflict: "follower_id,following_id" });
+  console.log("[acceptFollowRequest] r2:", r2.error?.message ?? "ok");
+
+  if (r1.error) throw new Error("DB-Fehler (r1): " + r1.error.message);
+  if (r2.error) throw new Error("DB-Fehler (r2): " + r2.error.message);
 
   // Remove the pending request
   await supabase
