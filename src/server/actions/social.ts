@@ -121,13 +121,13 @@ export async function cancelFollowRequest(targetUserId: string) {
 }
 
 // Accept a follow request (called by the target user)
-export async function acceptFollowRequest(requesterId: string, notificationId?: string) {
-  console.log("[acceptFollowRequest] called", { requesterId, notificationId });
-
+export async function acceptFollowRequest(
+  requesterId: string,
+  notificationId?: string
+): Promise<{ ok: boolean; error?: string }> {
   const session = await auth();
-  console.log("[acceptFollowRequest] session userId:", session?.user?.id ?? "NULL");
-  if (!session?.user?.id) throw new Error("Nicht angemeldet");
-  if (session.user.id === "demo-user-001") return;
+  if (!session?.user?.id) return { ok: false, error: "Nicht angemeldet" };
+  if (session.user.id === "demo-user-001") return { ok: true };
 
   const supabase = createAdminClient();
 
@@ -135,16 +135,21 @@ export async function acceptFollowRequest(requesterId: string, notificationId?: 
   const r1 = await supabase
     .from("follows")
     .upsert({ follower_id: requesterId, following_id: session.user.id }, { onConflict: "follower_id,following_id" });
-  console.log("[acceptFollowRequest] r1:", r1.error?.message ?? "ok");
+
+  if (r1.error) {
+    console.error("[acceptFollowRequest] r1 error:", r1.error.message);
+    return { ok: false, error: r1.error.message };
+  }
 
   // Insert B→A (acceptor follows requester back — mutual)
   const r2 = await supabase
     .from("follows")
     .upsert({ follower_id: session.user.id, following_id: requesterId }, { onConflict: "follower_id,following_id" });
-  console.log("[acceptFollowRequest] r2:", r2.error?.message ?? "ok");
 
-  if (r1.error) throw new Error("DB-Fehler (r1): " + r1.error.message);
-  if (r2.error) throw new Error("DB-Fehler (r2): " + r2.error.message);
+  if (r2.error) {
+    console.error("[acceptFollowRequest] r2 error:", r2.error.message);
+    return { ok: false, error: r2.error.message };
+  }
 
   // Remove the pending request
   await supabase
@@ -179,6 +184,8 @@ export async function acceptFollowRequest(requesterId: string, notificationId?: 
   revalidatePath("/leaderboard");
   revalidatePath("/notifications");
   revalidatePath("/dashboard");
+
+  return { ok: true };
 }
 
 // Decline a follow request (called by the target user)

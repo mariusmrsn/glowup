@@ -122,12 +122,12 @@ function FollowRequestActions({
     <div className="flex gap-2 mt-3">
       <button
         onClick={() => start(async () => {
-          try {
-            await acceptFollowRequest(requesterId, notificationId);
+          const result = await acceptFollowRequest(requesterId, notificationId);
+          if (result.ok) {
             setDone("accepted");
             toast.success("Anfrage angenommen!");
-          } catch (e) {
-            toast.error("Fehler: " + (e instanceof Error ? e.message : "Unbekannt"));
+          } else {
+            toast.error("Fehler: " + (result.error ?? "Unbekannt"));
           }
         })}
         disabled={isPending}
@@ -137,13 +137,9 @@ function FollowRequestActions({
       </button>
       <button
         onClick={() => start(async () => {
-          try {
-            await declineFollowRequest(requesterId, notificationId);
-            setDone("declined");
-            toast.success("Anfrage abgelehnt");
-          } catch (e) {
-            toast.error("Fehler: " + (e instanceof Error ? e.message : "Unbekannt"));
-          }
+          await declineFollowRequest(requesterId, notificationId);
+          setDone("declined");
+          toast.success("Anfrage abgelehnt");
         })}
         disabled={isPending}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
