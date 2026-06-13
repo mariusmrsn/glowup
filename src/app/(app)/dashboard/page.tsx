@@ -10,8 +10,9 @@ import { getGoals } from "@/server/queries/goals";
 import { HabitCard } from "@/components/game/HabitCard";
 import { CreateHabitDialog } from "@/components/game/CreateHabitDialog";
 import { CreateGoalDialog } from "@/components/game/CreateGoalDialog";
+import { DashboardHero } from "@/components/game/DashboardHero";
 import { getXpProgressInCurrentLevel } from "@/lib/xp";
-import { Flame, Zap, ChevronRight, Target, TrendingUp, Calendar } from "lucide-react";
+import { ChevronRight, TrendingUp, Calendar } from "lucide-react";
 import Link from "next/link";
 
 const DAILY_IMPULSE = [
@@ -92,69 +93,19 @@ export default async function DashboardPage() {
   return (
     <div className="p-5 lg:p-7 max-w-4xl mx-auto space-y-6">
 
-      {/* Hero greeting */}
-      <div className="app-card p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent border-indigo-500/20">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground mb-0.5">{greeting},</p>
-            <h1 className="text-2xl font-bold text-foreground">{user.username} 👋</h1>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/15 text-indigo-500 text-xs font-semibold">
-                <Zap className="w-3 h-3" /> Lv. {user.level} · {user.rank}
-              </span>
-              {user.current_streak > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/15 text-orange-500 text-xs font-semibold">
-                  <Flame className="w-3 h-3" /> {user.current_streak} Tage Streak
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="text-right shrink-0">
-            <p className="text-xs text-muted-foreground mb-1">Level-Fortschritt</p>
-            <p className="text-lg font-bold text-foreground">{xpProgress.current.toLocaleString()}</p>
-            <p className="text-[11px] text-muted-foreground">/ {xpProgress.required.toLocaleString()} XP</p>
-          </div>
-        </div>
-        <div className="mt-4 h-1.5 bg-secondary rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${xpProgress.percentage}%`, background: "linear-gradient(90deg, #6366f1, #8b5cf6)" }}
-          />
-        </div>
-        <p className="text-[11px] text-muted-foreground mt-1.5">{xpProgress.percentage}% zum nächsten Level</p>
-      </div>
-
-      {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="app-card p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Zap className="w-4 h-4 text-indigo-400" />
-            <span className="text-xs text-muted-foreground font-medium">Gesamt XP</span>
-          </div>
-          <p className="text-xl font-bold text-foreground">{Number(user.total_xp).toLocaleString()}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">Gesammelt</p>
-        </div>
-
-        <div className="app-card p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Flame className="w-4 h-4 text-orange-400" />
-            <span className="text-xs text-muted-foreground font-medium">Streak</span>
-          </div>
-          <p className="text-xl font-bold text-foreground">{user.current_streak}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">
-            {user.current_streak === 1 ? "Tag" : "Tage"} in Folge
-          </p>
-        </div>
-
-        <div className="app-card p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-sm">🪙</span>
-            <span className="text-xs text-muted-foreground font-medium">Coins</span>
-          </div>
-          <p className="text-xl font-bold text-foreground">{user.coins.toLocaleString()}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">Gesammelt</p>
-        </div>
-      </div>
+      {/* Animated hero */}
+      <DashboardHero
+        username={user.username}
+        level={user.level}
+        rank={user.rank}
+        totalXp={Number(user.total_xp)}
+        xpCurrent={xpProgress.current}
+        xpRequired={xpProgress.required}
+        xpPct={xpProgress.percentage}
+        streak={user.current_streak}
+        coins={user.coins}
+        greeting={greeting}
+      />
 
       {/* Tages-Impuls (replaces quests) */}
       <div className="app-card p-5 border-amber-500/20 bg-gradient-to-br from-amber-500/8 to-transparent">

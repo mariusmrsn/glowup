@@ -180,6 +180,55 @@ function UserSearchPanel({
   );
 }
 
+function Podium({ users }: { users: LeaderboardUser[] }) {
+  if (users.length < 3) return null;
+  const [first, second, third] = [users[0]!, users[1]!, users[2]!];
+  const rankColor = (r: string) => RANK_COLORS[r] ?? "#6b7280";
+
+  const PodiumSlot = ({
+    user, place, height, delay,
+  }: { user: LeaderboardUser; place: 1 | 2 | 3; height: string; delay: number }) => {
+    const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
+    const colors = { 1: "#F59E0B", 2: "#94a3b8", 3: "#d97706" };
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay, duration: 0.5, ease: "easeOut" }}
+        className="flex flex-col items-center gap-2 flex-1"
+      >
+        <Link href={`/u/${user.username}`} className="flex flex-col items-center gap-1 group">
+          <Avatar className="w-12 h-12 ring-2 ring-offset-2 ring-offset-background transition-transform group-hover:scale-105"
+            style={{ ringColor: colors[place] } as React.CSSProperties}>
+            <AvatarImage src={user.avatar_url ?? ""} />
+            <AvatarFallback className="text-sm font-black" style={{ background: `${colors[place]}20`, color: colors[place] }}>
+              {user.username.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-xl -mt-1">{medals[place]}</span>
+          <p className="text-xs font-semibold text-foreground text-center truncate max-w-[70px]">{user.username}</p>
+          <p className="text-[10px] font-medium" style={{ color: rankColor(user.rank) }}>Lv. {user.level}</p>
+          <p className="text-[10px] text-muted-foreground">{Number(user.total_xp).toLocaleString()} XP</p>
+        </Link>
+        <div
+          className="w-full rounded-t-xl flex items-center justify-center text-white/40 font-black text-lg"
+          style={{ height, background: `linear-gradient(180deg, ${colors[place]}30, ${colors[place]}10)`, border: `1px solid ${colors[place]}30`, borderBottom: "none" }}
+        >
+          {place}
+        </div>
+      </motion.div>
+    );
+  };
+
+  return (
+    <div className="flex items-end gap-2 mb-2">
+      <PodiumSlot user={second} place={2} height="56px" delay={0.1} />
+      <PodiumSlot user={first} place={1} height="80px" delay={0} />
+      <PodiumSlot user={third} place={3} height="40px" delay={0.2} />
+    </div>
+  );
+}
+
 export function LeaderboardClient({ users: initialUsers }: { users: LeaderboardUser[] }) {
   const [users, setUsers] = useState(initialUsers);
   const [filter, setFilter] = useState<"all" | "following">("all");
@@ -211,6 +260,9 @@ export function LeaderboardClient({ users: initialUsers }: { users: LeaderboardU
           </button>
         ))}
       </div>
+
+      {/* Podium — only in global view with enough players */}
+      {filter === "all" && users.length >= 3 && <Podium users={users.slice(0, 3)} />}
 
       {/* Empty state */}
       {displayed.length === 0 ? (

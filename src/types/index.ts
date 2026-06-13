@@ -138,41 +138,47 @@ export interface XpPopup {
 
 export const ATTRIBUTE_META: Record<
   AttributeType,
-  { label: string; icon: string; color: string; description: string }
+  { label: string; icon: string; emoji: string; color: string; description: string }
 > = {
   strength: {
     label: "Stärke",
     icon: "dumbbell",
+    emoji: "💪",
     color: "#EF4444",
     description: "Fitness & körperliche Aktivität",
   },
   intelligence: {
     label: "Intelligenz",
     icon: "brain",
+    emoji: "🧠",
     color: "#3B82F6",
     description: "Wissen & Lernen",
   },
   economy: {
     label: "Wirtschaft",
     icon: "trending-up",
+    emoji: "📈",
     color: "#F59E0B",
     description: "Finanzen & Investitionen",
   },
   discipline: {
     label: "Disziplin",
     icon: "target",
+    emoji: "🎯",
     color: "#8B5CF6",
     description: "Gewohnheiten & Selbstkontrolle",
   },
   social: {
     label: "Sozial",
     icon: "users",
+    emoji: "👥",
     color: "#EC4899",
     description: "Beziehungen & Netzwerk",
   },
   health: {
     label: "Gesundheit",
     icon: "heart",
+    emoji: "❤️",
     color: "#10B981",
     description: "Schlaf & Wohlbefinden",
   },

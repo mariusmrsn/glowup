@@ -4,13 +4,13 @@ import { getCharacter } from "@/server/queries/character";
 import { TopBar } from "@/components/layout/TopBar";
 import { LevelBadge } from "@/components/game/LevelBadge";
 import { RankBadge } from "@/components/game/RankBadge";
-import { StreakCounter } from "@/components/game/StreakCounter";
-import { XPBar } from "@/components/game/XPBar";
 import { getXpProgressInCurrentLevel } from "@/lib/xp";
 import { ProfileEditClient } from "./ProfileEditClient";
+import { ProfileStatsClient } from "./ProfileStatsClient";
 import { createAdminClient } from "@/lib/supabase/server";
 import { Coins, ExternalLink, Trophy } from "lucide-react";
 import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 async function getEquippedItems(userId: string) {
   if (userId === "demo-user-001") return [];
@@ -50,63 +50,77 @@ export default async function ProfilePage() {
   const badges = equipped.filter((e) => e.shop_items?.type === "badge");
   const titleItem = equipped.find((e) => e.shop_items?.type === "title");
 
+  const memberSince = new Date(user.created_at).toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" });
+
   return (
     <div>
       <TopBar title="Profil" user={user} />
       <div className="p-4 lg:p-6 max-w-xl mx-auto space-y-5">
+
         {/* Character card */}
-        <div className="app-card p-6 text-center">
+        <div className="app-card p-6 text-center relative overflow-hidden">
+          {/* Glow blobs */}
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 bg-indigo-500/10 blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-violet-500/8 blur-3xl rounded-full pointer-events-none" />
+
+          {/* Badges row */}
           {badges.length > 0 && (
-            <div className="flex items-center justify-center gap-1.5 mb-2">
+            <div className="flex items-center justify-center gap-1.5 mb-3 relative">
               {badges.slice(0, 5).map((b) => (
-                <span key={b.item_id} title={b.shop_items.name} className="text-xl">{b.shop_items.icon}</span>
+                <span
+                  key={b.item_id}
+                  title={b.shop_items.name}
+                  className="text-xl w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/8"
+                >
+                  {b.shop_items.icon}
+                </span>
               ))}
             </div>
           )}
 
-          <h2 className="text-2xl font-black text-foreground">{user.username}</h2>
+          {/* Avatar */}
+          <div className="relative inline-block mb-3">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-500/30 to-violet-500/30 blur-xl scale-125 pointer-events-none" />
+            <Avatar className="w-20 h-20 ring-2 ring-indigo-500/30 ring-offset-2 ring-offset-background relative">
+              <AvatarImage src={user.avatar_url ?? ""} />
+              <AvatarFallback className="bg-gradient-to-br from-indigo-500/20 to-violet-500/20 text-2xl font-black text-indigo-300">
+                {user.username.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+
+          <h2 className="text-2xl font-black text-foreground relative">{user.username}</h2>
 
           {titleItem ? (
-            <p className="text-sm font-semibold mt-0.5" style={{ color: RARITY_COLOR[titleItem.shop_items.rarity] }}>
+            <p className="text-sm font-semibold mt-0.5 relative" style={{ color: RARITY_COLOR[titleItem.shop_items.rarity] }}>
               {titleItem.shop_items.icon} {titleItem.shop_items.name}
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground mt-0.5">{user.title}</p>
+            <p className="text-sm text-muted-foreground mt-0.5 relative">{user.title}</p>
           )}
 
-          <div className="flex items-center justify-center gap-3 mt-3 mb-4">
+          <div className="flex items-center justify-center gap-3 mt-3 mb-4 relative">
             <LevelBadge level={user.level} />
             <RankBadge rank={user.rank} />
           </div>
 
-          <div className="max-w-xs mx-auto mb-4">
-            <XPBar current={xpProgress.current} required={xpProgress.required} percentage={xpProgress.percentage} />
-          </div>
-
-          <div className="border-t border-border pt-4 mt-2">
+          <div className="border-t border-border pt-4 mt-2 relative">
             <ProfileEditClient user={extUser} />
           </div>
         </div>
 
-        {/* Stats grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: "Gesamt XP", value: Number(user.total_xp).toLocaleString(), icon: "⚡" },
-            { label: "Coins", value: user.coins.toLocaleString(), icon: "🪙" },
-            { label: "Aktueller Streak", value: <StreakCounter streak={user.current_streak} />, icon: "🔥" },
-            { label: "Bester Streak", value: `${user.longest_streak} Tage`, icon: "🏆" },
-            { label: "Dabei seit", value: new Date(user.created_at).toLocaleDateString("de-DE"), icon: "📅" },
-            { label: "Level", value: String(user.level), icon: "⭐" },
-          ].map(({ label, value, icon }) => (
-            <div key={label} className="app-card p-4">
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="text-sm">{icon}</span>
-                <p className="text-xs text-muted-foreground">{label}</p>
-              </div>
-              <div className="font-bold text-foreground">{value}</div>
-            </div>
-          ))}
-        </div>
+        {/* Animated stats: XP ring + stat cards */}
+        <ProfileStatsClient
+          totalXp={Number(user.total_xp)}
+          coins={Number(user.coins)}
+          currentStreak={user.current_streak}
+          longestStreak={user.longest_streak}
+          memberSince={memberSince}
+          level={user.level}
+          xpCurrent={xpProgress.current}
+          xpRequired={xpProgress.required}
+          xpPct={xpProgress.percentage}
+        />
 
         {/* Quick links row */}
         <div className="grid grid-cols-2 gap-3">

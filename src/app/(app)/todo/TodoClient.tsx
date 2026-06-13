@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, CheckCircle2, Circle, Flag, Calendar, X } from "lucide-react";
 import { toast } from "sonner";
 import { createTodo, toggleTodo, deleteTodo } from "@/server/actions/todos";
+import { useGameStore } from "@/stores/gameStore";
+import { nanoid } from "nanoid";
 import type { Todo } from "@/server/queries/todos";
 
 const CATEGORIES = [
@@ -26,6 +28,7 @@ const PRIORITY_META = {
 function TodoItem({ todo }: { todo: Todo }) {
   const [isToggling, startToggle] = useTransition();
   const [isDeleting, startDelete] = useTransition();
+  const { addXpPopup, showLevelUp } = useGameStore();
 
   const dueDate = todo.due_date ? new Date(todo.due_date + "T00:00:00") : null;
   const isOverdue = dueDate && !todo.is_completed && dueDate < new Date(new Date().toDateString());
@@ -42,7 +45,17 @@ function TodoItem({ todo }: { todo: Todo }) {
       className="flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-card group"
     >
       <button
-        onClick={() => startToggle(async () => { try { await toggleTodo(todo.id, !todo.is_completed); } catch { toast.error("Fehler"); } })}
+        onClick={() => startToggle(async () => {
+          try {
+            const completing = !todo.is_completed;
+            const result = await toggleTodo(todo.id, completing);
+            if (completing && result.xpEarned > 0) {
+              addXpPopup({ id: nanoid(), amount: result.xpEarned });
+              if (result.leveledUp) showLevelUp({ oldLevel: result.newLevel - 1, newLevel: result.newLevel, rank: result.newRank as import("@/lib/ranks").RankName });
+              toast.success(`+${result.xpEarned} XP · +${result.coinsEarned} 🪙`, { description: "Todo abgeschlossen!" });
+            }
+          } catch { toast.error("Fehler"); }
+        })}
         disabled={isToggling}
         className="shrink-0 cursor-pointer"
       >
