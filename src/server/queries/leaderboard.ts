@@ -31,24 +31,36 @@ export async function getLeaderboard(currentUserId: string, limit = 50): Promise
   const pending   = new Set((requestsRes.data ?? []).map((r: { target_id: string }) => r.target_id));
   const followingIds = [...following];
 
-  // Fetch public users + any private users that current user follows
-  let query = supabase
+  // Fetch public users + followed private users in two queries, then merge
+  const publicQuery = supabase
     .from("users")
     .select("id, username, avatar_url, level, total_xp, rank, current_streak")
     .neq("id", currentUserId)
+    .eq("is_public", true)
     .order("total_xp", { ascending: false })
     .limit(limit);
 
-  if (followingIds.length > 0) {
-    // Show public users OR followed private users
-    query = query.or(`is_public.eq.true,id.in.(${followingIds.join(",")})`);
-  } else {
-    query = query.eq("is_public", true);
-  }
+  const [publicRes, privateFollowedRes] = await Promise.all([
+    publicQuery,
+    followingIds.length > 0
+      ? supabase
+          .from("users")
+          .select("id, username, avatar_url, level, total_xp, rank, current_streak")
+          .in("id", followingIds)
+          .eq("is_public", false)
+      : Promise.resolve({ data: [] }),
+  ]);
 
-  const { data: users } = await query;
+  // Merge: public users first, then any followed private users not already in the list
+  const publicUsers = publicRes.data ?? [];
+  const publicIds = new Set(publicUsers.map((u) => u.id));
+  const privateFollowed = (privateFollowedRes.data ?? []).filter((u) => !publicIds.has(u.id));
 
-  return (users ?? []).map((u) => ({
+  const merged = [...publicUsers, ...privateFollowed]
+    .sort((a, b) => Number(b.total_xp) - Number(a.total_xp))
+    .slice(0, limit);
+
+  return merged.map((u) => ({
     ...u,
     total_xp: Number(u.total_xp),
     is_following: following.has(u.id),
