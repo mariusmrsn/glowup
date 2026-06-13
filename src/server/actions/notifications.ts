@@ -5,7 +5,9 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 function isAdmin(email?: string | null) {
-  return !!email && email === process.env.ADMIN_EMAIL;
+  if (!email) return false;
+  const admins = (process.env.ADMIN_EMAIL ?? "").split(",").map((e) => e.trim().toLowerCase());
+  return admins.includes(email.toLowerCase());
 }
 
 export async function markAllNotificationsRead() {

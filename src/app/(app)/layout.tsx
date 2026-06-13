@@ -20,7 +20,8 @@ export default async function AppLayout({
     getUnreadCount(session.user.id).catch(() => 0),
   ]);
 
-  const isAdmin = session.user.email === process.env.ADMIN_EMAIL;
+  const adminEmails = (process.env.ADMIN_EMAIL ?? "").split(",").map((e) => e.trim().toLowerCase());
+  const isAdmin = !!session.user.email && adminEmails.includes(session.user.email.toLowerCase());
 
   return (
     <div className="flex min-h-screen bg-background relative">
