@@ -7,7 +7,7 @@ import { signIn } from "next-auth/react";
 import { loginUser } from "@/server/actions/auth";
 import { Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { PaperShaderBackground } from "@/components/auth/PaperShaderBackground";
+import { BubbleAnimation } from "@/components/auth/BubbleAnimation";
 
 const QUOTES = [
   { text: "My attitude is that if you push me towards my weakness, I will turn that weakness into my strength.", author: "Michael Jordan", emoji: "💪" },
@@ -80,10 +80,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden"
-         style={{ background: "#0d0d18" }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden bg-[#0d0d18]">
 
-      <PaperShaderBackground />
+      <BubbleAnimation />
 
       <div className="w-full max-w-sm flex flex-col items-center" style={{ position: "relative", zIndex: 10 }}>
 
