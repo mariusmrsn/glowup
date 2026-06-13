@@ -98,7 +98,7 @@ export default function NutzungsbedingungenPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-bold">9. Kündigung</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Du kannst dein Konto jederzeit durch eine E-Mail an mariusmuresan229@gmail.com kündigen. Wir behalten uns vor, Konten bei Verstößen gegen diese Nutzungsbedingungen ohne Vorwarnung zu sperren oder zu löschen.
+              Du kannst dein Konto jederzeit über unser <a href="/kontakt" className="text-indigo-500 underline hover:text-indigo-400 transition-colors">Kontaktformular</a> kündigen oder die Löschung beantragen. Wir behalten uns vor, Konten bei Verstößen gegen diese Nutzungsbedingungen ohne Vorwarnung zu sperren oder zu löschen.
             </p>
           </section>
 

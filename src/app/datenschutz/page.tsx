@@ -27,7 +27,16 @@ export default function DatenschutzPage() {
             </p>
             <div className="bg-secondary rounded-xl p-4 text-sm space-y-1">
               <p className="font-semibold">Marius Muresan</p>
-              <p className="text-muted-foreground">E-Mail: mariusmuresan229@gmail.com</p>
+              <p className="text-muted-foreground">Köln, Deutschland</p>
+              <p className="text-muted-foreground">
+                Kontakt:{" "}
+                <Link href="/kontakt" className="text-indigo-500 underline hover:text-indigo-400 transition-colors">
+                  Kontaktformular
+                </Link>
+              </p>
+              <p className="text-muted-foreground text-xs mt-1 italic">
+                GlowUp ist ein privates Hobbyprojekt eines Einzelentwicklers, unterstützt durch KI-Technologie.
+              </p>
             </div>
           </section>
 
@@ -85,12 +94,14 @@ export default function DatenschutzPage() {
               <li><strong className="text-foreground">Einschränkung</strong> (Art. 18 DSGVO): Du kannst die Verarbeitung einschränken lassen.</li>
               <li><strong className="text-foreground">Datenübertragbarkeit</strong> (Art. 20 DSGVO): Du kannst deine Daten in einem maschinenlesbaren Format erhalten.</li>
               <li><strong className="text-foreground">Widerspruch</strong> (Art. 21 DSGVO): Du kannst der Verarbeitung widersprechen.</li>
-              <li><strong className="text-foreground">Beschwerde</strong>: Du hast das Recht, dich bei einer Datenschutzbehörde zu beschweren (z. B. der zuständigen Landesbehörde).</li>
+              <li><strong className="text-foreground">Beschwerde</strong>: Du hast das Recht, dich bei einer Datenschutzbehörde zu beschweren (z. B. der Landesbeauftragten für Datenschutz NRW).</li>
             </ul>
             <p className="text-muted-foreground leading-relaxed">
-              Zur Ausübung deiner Rechte nutze unser{" "}
-              <Link href="/kontakt" className="text-indigo-500 underline hover:text-indigo-400 transition-colors">Kontaktformular</Link>
-              {" "}oder wende dich direkt an: <strong className="text-foreground">mariusmuresan229@gmail.com</strong>
+              Zur Ausübung deiner Rechte nutze bitte unser{" "}
+              <Link href="/kontakt" className="text-indigo-500 underline hover:text-indigo-400 transition-colors">
+                Kontaktformular
+              </Link>
+              . Wir werden uns so schnell wie möglich bei dir melden.
             </p>
           </section>
 
@@ -104,7 +115,7 @@ export default function DatenschutzPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-bold">8. Änderungen dieser Datenschutzerklärung</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen. Die aktuelle Version ist stets auf dieser Seite abrufbar. Bei wesentlichen Änderungen werden registrierte Nutzer per E-Mail informiert.
+              Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen. Die aktuelle Version ist stets auf dieser Seite abrufbar.
             </p>
           </section>
 
