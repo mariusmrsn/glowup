@@ -121,14 +121,30 @@ function FollowRequestActions({
   return (
     <div className="flex gap-2 mt-3">
       <button
-        onClick={() => start(async () => { await acceptFollowRequest(requesterId, notificationId); setDone("accepted"); toast.success("Anfrage angenommen!"); })}
+        onClick={() => start(async () => {
+          try {
+            await acceptFollowRequest(requesterId, notificationId);
+            setDone("accepted");
+            toast.success("Anfrage angenommen!");
+          } catch (e) {
+            toast.error("Fehler: " + (e instanceof Error ? e.message : "Unbekannt"));
+          }
+        })}
         disabled={isPending}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
       >
         {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "✓ Annehmen"}
       </button>
       <button
-        onClick={() => start(async () => { await declineFollowRequest(requesterId, notificationId); setDone("declined"); toast.success("Anfrage abgelehnt"); })}
+        onClick={() => start(async () => {
+          try {
+            await declineFollowRequest(requesterId, notificationId);
+            setDone("declined");
+            toast.success("Anfrage abgelehnt");
+          } catch (e) {
+            toast.error("Fehler: " + (e instanceof Error ? e.message : "Unbekannt"));
+          }
+        })}
         disabled={isPending}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
       >

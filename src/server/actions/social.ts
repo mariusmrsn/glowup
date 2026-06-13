@@ -123,23 +123,25 @@ export async function cancelFollowRequest(targetUserId: string) {
 // Accept a follow request (called by the target user)
 export async function acceptFollowRequest(requesterId: string, notificationId?: string) {
   const session = await auth();
-  if (!session?.user?.id || session.user.id === "demo-user-001") return;
+  if (!session?.user?.id) throw new Error("Nicht angemeldet");
+  if (session.user.id === "demo-user-001") return;
 
   const supabase = createAdminClient();
 
   // Create mutual follow — both users follow each other
-  await Promise.all([
-    supabase.from("follows").upsert(
-      { follower_id: requesterId, following_id: session.user.id },
-      { onConflict: "follower_id,following_id" }
-    ),
-    supabase.from("follows").upsert(
-      { follower_id: session.user.id, following_id: requesterId },
-      { onConflict: "follower_id,following_id" }
-    ),
+  const [r1, r2] = await Promise.all([
+    supabase
+      .from("follows")
+      .upsert({ follower_id: requesterId, following_id: session.user.id }, { onConflict: "follower_id,following_id" }),
+    supabase
+      .from("follows")
+      .upsert({ follower_id: session.user.id, following_id: requesterId }, { onConflict: "follower_id,following_id" }),
   ]);
 
-  // Remove the request
+  if (r1.error) throw new Error(r1.error.message);
+  if (r2.error) throw new Error(r2.error.message);
+
+  // Remove the pending request
   await supabase
     .from("follow_requests")
     .delete()
