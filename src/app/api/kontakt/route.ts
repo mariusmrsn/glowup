@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== "re_DEIN_API_KEY_HIER") {
       const { error } = await resend.emails.send({
         from: "GlowUp <onboarding@resend.dev>",
-        to: ["mariusmuresan229@gmail.com"],
+        to: ["marius.mrsn03@gmail.com"],
         replyTo: email.trim(),
         subject: `[GlowUp Anfrage] ${subject.trim()}`,
         text: `Name: ${name.trim()}\nE-Mail: ${email.trim()}\nAnliegen: ${subject.trim()}\n\n${message.trim()}`,
