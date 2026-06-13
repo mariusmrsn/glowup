@@ -127,11 +127,17 @@ export async function acceptFollowRequest(requesterId: string, notificationId?: 
 
   const supabase = createAdminClient();
 
-  // Create the actual follow
-  await supabase.from("follows").upsert(
-    { follower_id: requesterId, following_id: session.user.id },
-    { onConflict: "follower_id,following_id" }
-  );
+  // Create mutual follow — both users follow each other
+  await Promise.all([
+    supabase.from("follows").upsert(
+      { follower_id: requesterId, following_id: session.user.id },
+      { onConflict: "follower_id,following_id" }
+    ),
+    supabase.from("follows").upsert(
+      { follower_id: session.user.id, following_id: requesterId },
+      { onConflict: "follower_id,following_id" }
+    ),
+  ]);
 
   // Remove the request
   await supabase
@@ -165,6 +171,7 @@ export async function acceptFollowRequest(requesterId: string, notificationId?: 
 
   revalidatePath("/leaderboard");
   revalidatePath("/notifications");
+  revalidatePath("/dashboard");
 }
 
 // Decline a follow request (called by the target user)
