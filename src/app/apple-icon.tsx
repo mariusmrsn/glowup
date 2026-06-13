@@ -1,14 +1,39 @@
 import { ImageResponse } from "next/og";
 
+export const runtime = "nodejs";
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
-const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="22" fill="#111118"/><defs><linearGradient id="silver" x1="50%" y1="0%" x2="50%" y2="100%" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#FFFFFF"/><stop offset="60%" stop-color="#E0E0EC"/><stop offset="100%" stop-color="#9090A8"/></linearGradient></defs><path d="M50 14 C50 14 54 44 59 52 C67 60 86 58 86 58 C86 58 67 56 59 64 C54 72 50 90 50 90 C50 90 46 72 41 64 C33 56 14 58 14 58 C14 58 33 60 41 52 C46 44 50 14 50 14 Z" fill="url(#silver)"/><path d="M68 24 C68 24 69 27.5 70.5 29 C72 30.5 75.5 31 75.5 31 C75.5 31 72 31.5 70.5 33 C69 34.5 68 38 68 38 C68 38 67 34.5 65.5 33 C64 31.5 60.5 31 60.5 31 C60.5 31 64 30.5 65.5 29 C67 27.5 68 24 68 24 Z" fill="white" opacity="0.55"/></svg>`;
-
 export default function AppleIcon() {
-  const src = `data:image/svg+xml;base64,${Buffer.from(ICON_SVG).toString("base64")}`;
   return new ImageResponse(
-    <img src={src} width={180} height={180} />,
+    (
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          height: "100%",
+          background: "#111118",
+          borderRadius: 40,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            background: "linear-gradient(180deg, #FFFFFF 0%, #E0E0EC 60%, #9090A8 100%)",
+            backgroundClip: "text",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            color: "transparent",
+            fontSize: 94,
+            lineHeight: 1,
+          }}
+        >
+          ✦
+        </div>
+      </div>
+    ),
     { ...size }
   );
 }

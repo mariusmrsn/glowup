@@ -1,10 +1,6 @@
-const CACHE = "glowup-v1";
-const PRECACHE = ["/", "/favicon.ico"];
+const CACHE = "glowup-v2";
 
-self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)));
-  self.skipWaiting();
-});
+self.addEventListener("install", () => self.skipWaiting());
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
@@ -16,17 +12,19 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
-  if (url.pathname.startsWith("/api/")) return;
+
+  // Only cache Next.js immutable static chunks (/_next/static/)
+  // Never touch HTML, auth routes, API routes, or navigations
+  if (!url.pathname.startsWith("/_next/static/")) return;
 
   e.respondWith(
-    fetch(e.request)
-      .then((res) => {
-        const clone = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, clone));
-        return res;
-      })
-      .catch(() => caches.match(e.request))
+    caches.open(CACHE).then(async (cache) => {
+      const cached = await cache.match(e.request);
+      if (cached) return cached;
+      const res = await fetch(e.request);
+      if (res.ok) cache.put(e.request, res.clone());
+      return res;
+    })
   );
 });
