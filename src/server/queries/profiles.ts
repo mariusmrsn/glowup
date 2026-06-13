@@ -6,6 +6,7 @@ export interface PublicProfile {
   attributes: Attribute[];
   achievements: Achievement[];
   isFollowing: boolean;
+  hasPendingRequest: boolean;
 }
 
 export async function getPublicProfile(
@@ -22,7 +23,9 @@ export async function getPublicProfile(
 
   if (!userRow) return null;
 
-  const [attrsRes, achievementsRes, followsRes] = await Promise.all([
+  const notDemo = viewerId !== "demo-user-001";
+
+  const [attrsRes, achievementsRes, followsRes, requestsRes] = await Promise.all([
     supabase
       .from("attributes")
       .select("*")
@@ -32,13 +35,21 @@ export async function getPublicProfile(
       .select("achievement_id, unlocked_at, achievements(id, name, description, icon, condition_type, condition_value, xp_reward)")
       .eq("user_id", userRow.id)
       .order("unlocked_at", { ascending: false }),
-    viewerId !== "demo-user-001"
+    notDemo
       ? supabase
           .from("follows")
           .select("following_id")
           .eq("follower_id", viewerId)
           .eq("following_id", userRow.id)
           .single()
+      : Promise.resolve({ data: null }),
+    notDemo
+      ? supabase
+          .from("follow_requests")
+          .select("id")
+          .eq("requester_id", viewerId)
+          .eq("target_id", userRow.id)
+          .maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
 
@@ -52,5 +63,6 @@ export async function getPublicProfile(
     attributes: (attrsRes.data ?? []) as Attribute[],
     achievements,
     isFollowing: !!followsRes.data,
+    hasPendingRequest: !!requestsRes.data,
   };
 }

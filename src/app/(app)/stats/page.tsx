@@ -5,6 +5,7 @@ import { getHabitCompletionHistory } from "@/server/queries/habits";
 import { isDemoUser, DEMO_COMPLETION_HISTORY } from "@/lib/demo-data";
 import { TopBar } from "@/components/layout/TopBar";
 import { StatsCharts } from "@/components/game/StatsCharts";
+import { AttributeCard } from "@/components/game/AttributeCard";
 
 export default async function StatsPage() {
   const session = await auth();
@@ -39,13 +40,38 @@ export default async function StatsPage() {
 
   return (
     <div>
-      <TopBar title="Statistiken" user={user} />
-      <div className="p-4 lg:p-6 max-w-4xl mx-auto">
-        <StatsCharts
-          user={user}
-          completionHistory={last30Days}
-          radarData={radarData}
-        />
+      <TopBar title="Statistiken & Attribute" user={user} />
+      <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-8">
+
+        {/* Attribute section */}
+        <div>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-foreground">Deine Attribute</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Verbessere deine Attribute durch Gewohnheiten und tägliche Aktivität.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {attributes.map((attr, i) => (
+              <AttributeCard key={attr.id} attribute={attr} index={i} />
+            ))}
+          </div>
+        </div>
+
+        {/* Stats charts */}
+        <div>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-foreground">Statistiken</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Dein Fortschritt der letzten 30 Tage auf einen Blick.
+            </p>
+          </div>
+          <StatsCharts
+            user={user}
+            completionHistory={last30Days}
+            radarData={radarData}
+          />
+        </div>
       </div>
     </div>
   );

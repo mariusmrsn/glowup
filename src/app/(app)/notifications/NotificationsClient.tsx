@@ -4,15 +4,17 @@ import { useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, CheckCheck, Send, Loader2, Megaphone, Mail, Users } from "lucide-react";
 import { markAllNotificationsRead, markAllAnnouncementsRead, postAnnouncement } from "@/server/actions/notifications";
+import { acceptFollowRequest, declineFollowRequest } from "@/server/actions/social";
 import type { FeedItem } from "@/server/queries/notifications";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 
 const TYPE_META: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
-  contact_request: { icon: <Mail className="w-4 h-4" />, color: "#6366f1", label: "Kontaktanfrage" },
+  contact_request: { icon: <Mail className="w-4 h-4" />,  color: "#6366f1", label: "Kontaktanfrage" },
   follow:          { icon: <Users className="w-4 h-4" />, color: "#EC4899", label: "Follower" },
-  system:          { icon: <Bell className="w-4 h-4" />, color: "#F59E0B", label: "System" },
+  follow_request:  { icon: <Users className="w-4 h-4" />, color: "#8B5CF6", label: "Folgeanfrage" },
+  system:          { icon: <Bell className="w-4 h-4" />,  color: "#F59E0B", label: "System" },
 };
 
 const EMOJIS = ["📢", "🎉", "🔥", "⚡", "🏆", "💪", "✨", "🎯", "🚀", "💡"];
@@ -99,6 +101,39 @@ function AnnouncementForm() {
           </motion.form>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function FollowRequestActions({
+  notificationId,
+  requesterId,
+}: {
+  notificationId: string;
+  requesterId: string;
+}) {
+  const [done, setDone] = useState<"accepted" | "declined" | null>(null);
+  const [isPending, start] = useTransition();
+
+  if (done === "accepted") return <p className="text-xs text-green-500 mt-2 font-medium">✓ Angenommen</p>;
+  if (done === "declined") return <p className="text-xs text-muted-foreground mt-2">Abgelehnt</p>;
+
+  return (
+    <div className="flex gap-2 mt-3">
+      <button
+        onClick={() => start(async () => { await acceptFollowRequest(requesterId, notificationId); setDone("accepted"); toast.success("Anfrage angenommen!"); })}
+        disabled={isPending}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+      >
+        {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "✓ Annehmen"}
+      </button>
+      <button
+        onClick={() => start(async () => { await declineFollowRequest(requesterId, notificationId); setDone("declined"); toast.success("Anfrage abgelehnt"); })}
+        disabled={isPending}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+      >
+        Ablehnen
+      </button>
     </div>
   );
 }
@@ -234,6 +269,12 @@ export function NotificationsClient({
                     {item.body && <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.body}</p>}
                     {item.type === "contact_request" && (
                       <ContactRequestDetail metadata={item.metadata ?? {}} />
+                    )}
+                    {item.type === "follow_request" && item.metadata != null && item.metadata.requester_id != null && (
+                      <FollowRequestActions
+                        notificationId={item.id}
+                        requesterId={String(item.metadata.requester_id)}
+                      />
                     )}
                     <p className="text-[10px] text-muted-foreground/60 mt-2">
                       {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: de })}

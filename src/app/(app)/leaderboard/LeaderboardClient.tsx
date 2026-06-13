@@ -212,14 +212,17 @@ export function LeaderboardClient({ users: initialUsers }: { users: LeaderboardU
         ))}
       </div>
 
-      {/* List */}
+      {/* Empty state */}
       {displayed.length === 0 ? (
         <div className="text-center py-20">
-          <div className="text-4xl mb-3">👥</div>
-          <p className="text-sm text-muted-foreground">
+          <div className="text-4xl mb-3">{filter === "following" ? "👥" : "🌍"}</div>
+          <p className="text-sm font-medium text-foreground mb-1">
+            {filter === "following" ? "Noch keine Freunde" : "Keine öffentlichen Spieler"}
+          </p>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
             {filter === "following"
-              ? "Folge anderen Nutzern über die Suche oben, um sie hier zu sehen"
-              : "Keine Nutzer gefunden"}
+              ? "Suche oben nach Benutzernamen und schick eine Anfrage — dann siehst du hier, wie deine Freunde abschneiden."
+              : "Noch niemand mit öffentlichem Profil gefunden."}
           </p>
         </div>
       ) : (

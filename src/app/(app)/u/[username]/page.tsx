@@ -27,7 +27,8 @@ export default async function PublicProfilePage({
   const profile = await getPublicProfile(username, session.user.id);
   if (!profile) notFound();
 
-  const { user, attributes, achievements, isFollowing } = profile;
+  const { user, attributes, achievements, isFollowing, hasPendingRequest } = profile;
+  const followState = isFollowing ? "following" : hasPendingRequest ? "pending" : "none";
   const xpProgress = getXpProgressInCurrentLevel(Number(user.total_xp));
   const isOwnProfile = user.username.toLowerCase() === (session.user as { username?: string }).username?.toLowerCase();
 
@@ -80,7 +81,7 @@ export default async function PublicProfilePage({
         </div>
 
         {!isOwnProfile && (
-          <FollowButtonPublic targetId={user.id} initialFollowing={isFollowing} username={user.username} />
+          <FollowButtonPublic targetId={user.id} initialState={followState} username={user.username} />
         )}
         {isOwnProfile && (
           <Link

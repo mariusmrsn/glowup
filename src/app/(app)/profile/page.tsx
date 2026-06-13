@@ -9,7 +9,7 @@ import { XPBar } from "@/components/game/XPBar";
 import { getXpProgressInCurrentLevel } from "@/lib/xp";
 import { ProfileEditClient } from "./ProfileEditClient";
 import { createAdminClient } from "@/lib/supabase/server";
-import { Coins } from "lucide-react";
+import { Coins, ExternalLink, Trophy } from "lucide-react";
 import Link from "next/link";
 
 async function getEquippedItems(userId: string) {
@@ -108,19 +108,45 @@ export default async function ProfilePage() {
           ))}
         </div>
 
-        {/* Shop CTA */}
+        {/* Quick links row */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            href="/shop"
+            className="app-card p-4 flex items-center gap-3 hover:bg-secondary/50 transition-colors group"
+          >
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-lg shrink-0">🏪</div>
+            <div className="min-w-0">
+              <p className="font-semibold text-sm text-foreground truncate">Shop</p>
+              <p className="text-xs text-muted-foreground">{user.coins} Coins</p>
+            </div>
+            <Coins className="w-4 h-4 text-muted-foreground group-hover:text-amber-500 transition-colors ml-auto shrink-0" />
+          </Link>
+          <Link
+            href="/achievements"
+            className="app-card p-4 flex items-center gap-3 hover:bg-secondary/50 transition-colors group"
+          >
+            <div className="w-9 h-9 rounded-xl bg-yellow-500/10 flex items-center justify-center text-lg shrink-0">🏆</div>
+            <div className="min-w-0">
+              <p className="font-semibold text-sm text-foreground truncate">Achievements</p>
+              <p className="text-xs text-muted-foreground">Fortschritte</p>
+            </div>
+            <Trophy className="w-4 h-4 text-muted-foreground group-hover:text-yellow-500 transition-colors ml-auto shrink-0" />
+          </Link>
+        </div>
+
+        {/* Public profile link */}
         <Link
-          href="/shop"
+          href={`/u/${user.username}`}
           className="app-card p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-xl">🏪</div>
+            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-lg shrink-0">👤</div>
             <div>
-              <p className="font-semibold text-sm text-foreground">GlowUp Shop</p>
-              <p className="text-xs text-muted-foreground">Items kaufen · {user.coins} Coins verfügbar</p>
+              <p className="font-semibold text-sm text-foreground">Öffentliches Profil</p>
+              <p className="text-xs text-muted-foreground">So sehen andere dein Profil</p>
             </div>
           </div>
-          <Coins className="w-4 h-4 text-muted-foreground group-hover:text-amber-500 transition-colors" />
+          <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-indigo-500 transition-colors" />
         </Link>
       </div>
     </div>

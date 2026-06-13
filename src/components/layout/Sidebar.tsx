@@ -8,8 +8,6 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   CheckSquare,
-  Swords,
-  Zap,
   Trophy,
   BarChart3,
   User,
@@ -32,9 +30,7 @@ const NAV_ITEMS = [
   { href: "/habits",          icon: CheckSquare,     label: "Gewohnheiten",       color: "#10B981" },
   { href: "/goals",           icon: Target,          label: "Ziele",              color: "#F59E0B" },
   { href: "/todo",            icon: ListTodo,        label: "To-Do Liste",        color: "#3B82F6" },
-  { href: "/quests",          icon: Swords,          label: "Quests",             color: "#EF4444" },
   { href: "/leaderboard",     icon: Users,           label: "Rangliste",          color: "#EC4899" },
-  { href: "/attributes",      icon: Zap,             label: "Attribute",          color: "#8B5CF6" },
   { href: "/achievements",    icon: Trophy,          label: "Achievements",       color: "#F59E0B" },
   { href: "/shop",            icon: ShoppingBag,     label: "Shop",               color: "#F97316" },
   { href: "/stats",           icon: BarChart3,       label: "Statistiken",        color: "#06B6D4" },
