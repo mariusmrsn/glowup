@@ -27,7 +27,8 @@ export async function POST(req: NextRequest) {
 
     // E-Mail via Resend — optional, only if API key is configured
     if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== "re_DEIN_API_KEY_HIER") {
-      const { error } = await resend.emails.send({
+      console.log("[Resend] Sending email to marius.mrsn03@gmail.com ...");
+      const { data, error } = await resend.emails.send({
         from: "GlowUp <onboarding@resend.dev>",
         to: ["marius.mrsn03@gmail.com"],
         replyTo: email.trim(),
@@ -49,7 +50,13 @@ export async function POST(req: NextRequest) {
           </div>
         `,
       });
-      if (error) console.error("Resend error:", error);
+      if (error) {
+        console.error("[Resend] ERROR:", JSON.stringify(error));
+      } else {
+        console.log("[Resend] SUCCESS — email id:", data?.id);
+      }
+    } else {
+      console.warn("[Resend] Skipped — no valid API key set");
     }
 
     return NextResponse.json({ ok: true });
