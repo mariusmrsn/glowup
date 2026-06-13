@@ -17,14 +17,8 @@ export async function getLeaderboard(currentUserId: string, limit = 50): Promise
 
   const notDemo = currentUserId !== "demo-user-001";
 
-  const [usersRes, followsRes, requestsRes] = await Promise.all([
-    supabase
-      .from("users")
-      .select("id, username, avatar_url, level, total_xp, rank, current_streak")
-      .neq("id", currentUserId)
-      .eq("is_public", true)
-      .order("total_xp", { ascending: false })
-      .limit(limit),
+  // Fetch follows and pending requests in parallel
+  const [followsRes, requestsRes] = await Promise.all([
     notDemo
       ? supabase.from("follows").select("following_id").eq("follower_id", currentUserId)
       : Promise.resolve({ data: [] }),
@@ -35,8 +29,26 @@ export async function getLeaderboard(currentUserId: string, limit = 50): Promise
 
   const following = new Set((followsRes.data ?? []).map((f: { following_id: string }) => f.following_id));
   const pending   = new Set((requestsRes.data ?? []).map((r: { target_id: string }) => r.target_id));
+  const followingIds = [...following];
 
-  return (usersRes.data ?? []).map((u) => ({
+  // Fetch public users + any private users that current user follows
+  let query = supabase
+    .from("users")
+    .select("id, username, avatar_url, level, total_xp, rank, current_streak")
+    .neq("id", currentUserId)
+    .order("total_xp", { ascending: false })
+    .limit(limit);
+
+  if (followingIds.length > 0) {
+    // Show public users OR followed private users
+    query = query.or(`is_public.eq.true,id.in.(${followingIds.join(",")})`);
+  } else {
+    query = query.eq("is_public", true);
+  }
+
+  const { data: users } = await query;
+
+  return (users ?? []).map((u) => ({
     ...u,
     total_xp: Number(u.total_xp),
     is_following: following.has(u.id),

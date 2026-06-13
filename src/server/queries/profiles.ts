@@ -17,11 +17,22 @@ export async function getPublicProfile(
 
   const { data: userRow } = await supabase
     .from("users")
-    .select("id, username, avatar_url, level, total_xp, rank, current_streak, longest_streak, coins, created_at, bio")
+    .select("id, username, avatar_url, level, total_xp, rank, current_streak, longest_streak, coins, created_at, bio, is_public")
     .ilike("username", username)
     .single();
 
   if (!userRow) return null;
+
+  // Private profile: only the owner or followers can view it
+  if (!userRow.is_public && viewerId !== userRow.id) {
+    const { data: followCheck } = await supabase
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", viewerId)
+      .eq("following_id", userRow.id)
+      .maybeSingle();
+    if (!followCheck) return null;
+  }
 
   const notDemo = viewerId !== "demo-user-001";
 

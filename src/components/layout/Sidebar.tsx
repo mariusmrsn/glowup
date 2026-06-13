@@ -26,7 +26,7 @@ import { getXpProgressInCurrentLevel } from "@/lib/xp";
 const NAV_ITEMS = [
   { href: "/dashboard",       icon: LayoutDashboard, label: "Dashboard",          color: "#6366f1" },
   { href: "/todo",            icon: ListTodo,        label: "To-Do Liste",        color: "#3B82F6" },
-  { href: "/leaderboard",     icon: Users,           label: "Rangliste",          color: "#EC4899" },
+  { href: "/leaderboard",     icon: Users,           label: "Rangliste / Freunde", color: "#EC4899" },
   { href: "/achievements",    icon: Trophy,          label: "Achievements",       color: "#F59E0B" },
   { href: "/shop",            icon: ShoppingBag,     label: "Shop",               color: "#F97316" },
   { href: "/stats",           icon: BarChart3,       label: "Statistiken",        color: "#06B6D4" },
