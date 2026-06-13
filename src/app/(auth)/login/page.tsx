@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { loginUser } from "@/server/actions/auth";
 import { Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { PaperShaderBackground } from "@/components/auth/PaperShaderBackground";
@@ -44,6 +45,13 @@ export default function LoginPage() {
   const [isDemoPending, startDemoTransition] = useTransition();
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const e = params.get("error");
+    if (e === "CredentialsSignin") setError("E-Mail oder Passwort falsch.");
+    else if (e) setError(`Login-Fehler (${e}) — bitte Seite neu laden.`);
+  }, []);
+
+  useEffect(() => {
     const id = setInterval(() => {
       setQuoteIndex((i) => (i + 1) % QUOTES.length);
     }, 6000);
@@ -57,13 +65,11 @@ export default function LoginPage() {
     if (!email || !password) return;
     setError("");
     startTransition(async () => {
-      const res = await signIn("credentials", {
-        email: email.toLowerCase().trim(),
-        password,
-        redirect: false,
-      });
-      if (res?.error) setError("E-Mail oder Passwort falsch.");
-      else window.location.href = "/dashboard";
+      const formData = new FormData();
+      formData.append("email", email.toLowerCase().trim());
+      formData.append("password", password);
+      const result = await loginUser(formData);
+      if (result?.error) setError(result.error);
     });
   };
 
