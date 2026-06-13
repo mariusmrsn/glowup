@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAdminNotification } from "@/server/actions/notifications";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(req: NextRequest) {
   try {
     const { name, email, subject, message } = await req.json() as {
@@ -27,6 +25,7 @@ export async function POST(req: NextRequest) {
 
     // E-Mail via Resend — optional, only if API key is configured
     if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== "re_DEIN_API_KEY_HIER") {
+      const resend = new Resend(process.env.RESEND_API_KEY);
       console.log("[Resend] Sending email to marius.mrsn03@gmail.com ...");
       const { data, error } = await resend.emails.send({
         from: "GlowUp <onboarding@resend.dev>",
